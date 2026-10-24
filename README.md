@@ -65,16 +65,14 @@ The repository has a composite action. A project workflow uses it in two steps:
 one place the account name appears, and it is the same fact as the repository URL. This README uses
 a placeholder.
 
-**Visibility rule.** A workflow can use this action only from a repository with the same or stricter
-visibility. A **private** project can call it (tested: GBOGH). A **public** project cannot: GitHub
-answers `Unable to resolve action`. Six of the seven projects are public, so they need one of these:
+**Visibility.** This repository is public, so any project workflow can use the action with no token
+and no vendored copy. GitHub passes no secret to the runner for a public action, and nothing here
+reads a credential.
 
-- a vendored copy of `tools/factory.py` and `config/`, synced by `sync --write` and checked by the
-  config stage, or
-- a fine-grained token in each public repo, used with `actions/checkout` of this repository.
-
-The gate itself needs no token for the private case: GitHub passes a scoped token to the runner for
-one hour, and this repository grants access to repositories owned by the same user.
+History note: the repository was private for its first day, and only a private caller could resolve
+the action then. The 12 early commits were squashed into one before publication, because the earlier
+README carried an absolute path from the machine it was written on. The published history holds no
+such path.
 
 ## Why it exists
 
