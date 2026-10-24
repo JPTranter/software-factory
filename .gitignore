@@ -1,0 +1,6 @@
+output/
+*.pyc
+__pycache__/
+.pio/
+# This machine's paths. The template is tracked; the real file is not.
+factory.config

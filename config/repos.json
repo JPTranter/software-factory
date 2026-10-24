@@ -1,0 +1,60 @@
+{
+  "_comment": "One entry per project. 'extra' adds allowlist paths on top of config/gitleaks.base.toml. 'note' carries the project's own reason, and lands in the generated file as a comment. Keep every extra path justified: it is the only place a project can widen the scan.",
+  "shared": [
+    "\\.pio/",
+    "/build/",
+    "/build-.*/",
+    "/output/",
+    "\\.venv/",
+    "\\.venv-.*/",
+    "node_modules/",
+    "third_party/"
+  ],
+  "repos": {
+    "ApolloMatrix": {
+      "note": "Rendered images and the glyph fixture are dense binary/hex blobs whose runs look like credentials to the entropy heuristics. Nothing authored by hand is allowlisted, so a real secret in the config, docs or scripts is still caught.",
+      "extra": ["docs/images/", "test/fonts/metrics\\.json", "\\.vscode/"]
+    },
+    "ChromaWOTD": {
+      "note": "Vendored Seeed_GFX / Adafruit GFX font tables are dense binary blobs. The secrets TEMPLATE is safe by construction and is meant to be committed; the real secrets.h is gitignored and never tracked.",
+      "extra": ["firmware/src/fonts/.*\\.h", "firmware/src/secrets\\.h\\.example"],
+      "display": {
+        "width": 296, "height": 128, "max_colours": 4,
+        "renders": "docs/images/*.png",
+        "note": "4-colour BWRY panel, one landscape presentation. These four files are the byte-compared ledger."
+      }
+    },
+    "eClock": {
+      "note": "The vendored board variant ships compiled mbed libraries, whose .a files trip the generic lookalike heuristics.",
+      "extra": ["firmware/variants/.*/[Ll]ibs/.*\\.a", "firmware/variants/.*/.*\\.a"],
+      "display": {
+        "width": 296, "height": 128, "max_colours": 2,
+        "renders": "docs/screenshots/*.png",
+        "exclude": ["state_matrix_approval.png"],
+        "note": "GDEY029T94, 1-bit, 296x128. state_matrix_approval.png is a contact sheet of states, not a panel render."
+      }
+    },
+    "GBOGH": {
+      "note": "The vendored GxEPD2 / Adafruit GFX trees, the vendored QR encoder and the generated 1-bit digit atlas are machine-written ink data. This project has no compile-time credential path: Wi-Fi credentials exist only in the device NVS, written by the setup portal.",
+      "extra": ["firmware/src/third_party/", "firmware/src/DigitAtlas.h"],
+      "display": {
+        "width": 800, "height": 480, "max_colours": 4,
+        "renders": "docs/images/face_*.png",
+        "exclude": ["face_variants_800x480.png"],
+        "note": "GDEY0426T82, 800x480. face_variants_800x480.png is a contact sheet, not a panel render."
+      }
+    },
+    "GarminSteampunkWatchface": {
+      "note": "Image binaries (renders, artwork, the AI art's C2PA provenance certificates) and compiled bitmap-font atlases can trip the high-entropy heuristics; they hold no credentials. The real secret here is the Connect IQ signing key in ciq/keys/, which is gitignored and which nothing allowlists.",
+      "extra": ["\\.(png|gif|jpg|jpeg)$"]
+    },
+    "ThirdAbove": {
+      "note": "The live trainer page carries mock strings that match the generic rules. This project is the oldest config and the weakest: review these two entries before the next release.",
+      "extra": ["\\.gitleaks\\.toml", "test_trainer_live\\.html"]
+    },
+    "tts-voice-experiments": {
+      "note": "Audio renders, Piper ONNX weights and the local interpreter hold long high-entropy byte runs that are not secrets and are re-generatable.",
+      "extra": ["audio/.*", "models/.*"]
+    }
+  }
+}

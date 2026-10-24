@@ -1,0 +1,16 @@
+# Factory configuration - copy this file to `factory.config`.
+#
+# `factory.config` is gitignored. It holds the paths of this machine only, so the
+# repository stays free of absolute locations.
+#
+#   cp factory.config.example factory.config
+#
+# PROJECTS_ROOT is the directory that holds your project repositories and the
+# clone of this repository. Required.
+
+PROJECTS_ROOT=C:/path/to/your/projects
+
+# WORKTREE_ROOT is optional. The isolate stage puts worktrees here.
+# Default: $PROJECTS_ROOT/_worktrees
+
+#WORKTREE_ROOT=C:/path/to/your/worktrees

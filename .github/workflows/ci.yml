@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  self-check:
+    name: Gate over this repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history, so the secret scan sees every commit
+
+      - name: Install gitleaks
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          # Pinned to the version the local gate uses.
+          ver=8.30.1
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v$ver/gitleaks_${ver}_linux_x64.tar.gz" \
+            | tar -xz -C "$RUNNER_TEMP/bin" gitleaks
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Install pillow
+        run: python3 -m pip install --quiet --disable-pip-version-check pillow
+
+      - name: The gate over this repository
+        run: python3 tools/factory.py selfcheck
+
+      - name: Shell and JSON syntax
+        run: |
+          bash -n tools/factory-worktree.sh
+          python3 -c "import json; json.load(open('config/repos.json')); print('repos.json ok')"

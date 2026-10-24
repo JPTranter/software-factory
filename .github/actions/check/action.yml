@@ -1,0 +1,51 @@
+name: Factory check
+description: >-
+  Run the five-stage factory gate over the calling repository: secrets, gitleaks
+  config drift, home paths, markdown links, and Python compilation.
+
+inputs:
+  repo:
+    description: >-
+      The project directory name, exactly as it appears in the factory's
+      config/repos.json. The workflow must check out that repository first, with
+      fetch-depth 0 so the secret scan sees the whole history.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install gitleaks
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p "$RUNNER_TEMP/bin"
+        # Pinned to the version the local gate uses.
+        ver=8.30.1
+        url="https://github.com/gitleaks/gitleaks/releases/download/v$ver/gitleaks_${ver}_linux_x64.tar.gz"
+        curl -sSfL "$url" | tar -xz -C "$RUNNER_TEMP/bin" gitleaks
+        echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+    - name: Install pillow
+      shell: bash
+      run: python3 -m pip install --quiet --disable-pip-version-check pillow
+
+    - name: Run the gate
+      shell: bash
+      env:
+        INPUT_REPO: ${{ inputs.repo }}
+      run: |
+        set -euo pipefail
+
+        # The action is downloaded with its repository, so the factory root is
+        # three levels up from .github/actions/check.
+        FACTORY_ROOT="$(cd "$GITHUB_ACTION_PATH/../../.." && pwd)"
+
+        # The gate expects $PROJECTS_ROOT/<repo>. Point it at a temporary root
+        # that holds one link to the calling workspace.
+        root="$RUNNER_TEMP/projects"
+        mkdir -p "$root"
+        ln -sfn "$GITHUB_WORKSPACE" "$root/$INPUT_REPO"
+
+        export PROJECTS_ROOT="$root"
+        export PATH="$RUNNER_TEMP/bin:$PATH"
+        python3 "$FACTORY_ROOT/tools/factory.py" check "$INPUT_REPO"
